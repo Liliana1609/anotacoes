@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanTier {
+  FREE
+  BASIC
+  PLUS
+  PREMIUM
+}
+
+enum ExportFormat {
+  PDF
+  DOCX
+}
+
+enum PaymentProvider {
+  STRIPE
+  GOOGLE_PLAY
+}
+
+model User {
+  id              String          @id @default(uuid())
+  firebaseUid     String          @unique
+  email           String          @unique
+  displayName     String?
+  locale          String          @default("pt-BR")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  resumes         Resume[]
+  downloads       Download[]
+  subscriptions   Subscription[]
+  photoProcesses  PhotoProcess[]
+}
+
+model Resume {
+  id          String           @id @default(uuid())
+  userId      String
+  title       String
+  summary     String?
+  content     Json
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  versions    ResumeVersion[]
+  downloads   Download[]
+  user        User             @relation(fields: [userId], references: [id])
+}
+
+model ResumeVersion {
+  id          String   @id @default(uuid())
+  resumeId    String
+  jobTitle    String
+  locale      String
+  content     Json
+  createdAt   DateTime @default(now())
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+}
+
+model Download {
+  id         String       @id @default(uuid())
+  userId     String
+  resumeId   String
+  format     ExportFormat
+  storageUrl String
+  createdAt  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id])
+  resume     Resume       @relation(fields: [resumeId], references: [id])
+}
+
+model Subscription {
+  id              String          @id @default(uuid())
+  userId          String
+  tier            PlanTier
+  provider        PaymentProvider
+  providerRef     String
+  status          String
+  currentPeriodEnd DateTime
+  createdAt       DateTime        @default(now())
+  user            User            @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id          String          @id @default(uuid())
+  userId      String
+  provider    PaymentProvider
+  providerRef String
+  amount      Int
+  currency    String
+  createdAt   DateTime        @default(now())
+}
+
+model PhotoProcess {
+  id            String   @id @default(uuid())
+  userId        String
+  inputUrl      String
+  outputUrl     String?
+  status        String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}

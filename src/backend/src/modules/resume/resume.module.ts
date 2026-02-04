@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { ResumeController } from './resume.controller';
+import { ResumeService } from './resume.service';
+import { PrismaService } from '../../services/prisma.service';
+import { AuthModule } from '../auth/auth.module';
+
+@Module({
+  imports: [AuthModule],
+  controllers: [ResumeController],
+  providers: [ResumeService, PrismaService],
+})
+export class ResumeModule {}
